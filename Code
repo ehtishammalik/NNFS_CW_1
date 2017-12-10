@@ -1,0 +1,41 @@
+BreastCancerData=importdata('breast-cancer-wisconsin.data'); 
+NoOfInput=[550,410,341,273,133];
+hiddenlayer=[10,15,20,25,30]  
+learningrate=[0.01,0.05,0.08,0.1,0.5]  
+InputData = BreastCancerData(:,2:end-1);       						
+OutputData = BreastCancerData(:,end);	   							
+InputData(InputData == 0)=round(mean(InputData(:,6)));   	 
+
+for i=1:length(NoOfInput)
+
+ trainInputDataStart=InputData(1:round(NoOfInput(i)/2),:); 
+ trainInputDataEnd=InputData(end-round(NoOfInput(i)/2),:);
+ CtrainInputData=cat(1,trainInputDataStart,trainInputDataEnd);
+				
+ trainOutputDataStart=OutputData(1:round(NoOfInput(i)/2),:);
+ trainOutputDataEnd=OutputData(end-round(NoOfInput(i)/2),:);
+ CtrainOutputData=cat(1,trainOutputDataStart,trainOutputDataEnd); 
+ 			
+ testInputData=InputData(round(NoOfInput(i)/2)+1:end-round(NoOfInput(i)/2),:); 			
+ testOutputData=OutputData(round(NoOfInput(i)/2)+1:end-round(NoOfInput(i)/2),:);
+
+ net = newff(CtrainInputData', CtrainOutputData',hiddenlayer(i), {'tansig' 'tansig'}, 'trainr', 'learngd', 'mse');
+ net.trainParam.goal = learningrate(i);
+ net.trainParam.epochs = 100;
+ net = train(net, CtrainInputData',CtrainOutputData');
+ result=net(testInputData');
+ Output=result';
+ counter=0;
+ for x=1:length(Output)
+  if (Output(x)<=3)
+   Output(x)=2;
+  else
+   Output(x)=4;
+  end
+  if(Output(x)== testOutputData(x))
+   counter=counter+1;
+  end
+ end
+ accuracy=counter/size(testOutputData,1)*100;
+ disp(accuracy);
+end
